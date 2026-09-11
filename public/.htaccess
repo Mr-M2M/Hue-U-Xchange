@@ -1,0 +1,15 @@
+# Hue U Xchange - Apache rewrite rules.
+#
+# Requires "AllowOverride All" for this directory in your Apache/XAMPP
+# vhost config so this .htaccess file is actually read - see
+# docs/mvc-architecture.md and README.md for the full local setup.
+#
+# Serves real files (CSS, images) and directories directly; everything
+# else is rewritten to the front controller with the requested path
+# turned into the ?route= query string it expects, e.g. a request for
+# /products becomes index.php?route=products. Existing query strings
+# (QSA) are preserved.
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
