@@ -1,93 +1,80 @@
 <?php
-session_start();
+require __DIR__ . '/includes/session.php';
+require __DIR__ . '/config/database.php';
 
-// Start or initialize cart
+hue_start_session();
+
 if (!isset($_SESSION['cart'])) {
-  $_SESSION['cart'] = [];
+    $_SESSION['cart'] = [];
 }
 
-// Handle adding items to cart
+// Handle adding items to the cart. Product IDs are validated against the
+// database below rather than trusted directly from the form.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $id = $_POST['product_id'];
-  $qty = (int) $_POST['quantity'];
+    $id = (int) ($_POST['product_id'] ?? 0);
+    $qty = max(1, (int) ($_POST['quantity'] ?? 1));
 
-  if (isset($_SESSION['cart'][$id])) {
-    $_SESSION['cart'][$id] += $qty;
-  } else {
-    $_SESSION['cart'][$id] = $qty;
-  }
-}
-
-// Define product catalog
-$products = [
-  ["id" => 1, "name" => "Divine Hoodie", "price" => 44, "desc" => "Wrap yourself in warmth and worth."],
-  ["id" => 2, "name" => "Aura Oils", "price" => 22, "desc" => "Align your frequency with intention."],
-  ["id" => 3, "name" => "Ritual Kit", "price" => 33, "desc" => "Tools for transformation."],
-  ["id" => 4, "name" => "Music EP", "price" => 11, "desc" => "Sonic guidance from the Lightbearer archives."],
-  ["id" => 5, "name" => "Access Code", "price" => 55, "desc" => "Unlock inner sanctums of self-awareness."]
-];
-
-// Helper to find a product by ID
-function getProductById($products, $id) {
-  foreach ($products as $product) {
-    if ($product['id'] == $id) {
-      return $product;
+    if ($id > 0) {
+        if (isset($_SESSION['cart'][$id])) {
+            $_SESSION['cart'][$id] += $qty;
+        } else {
+            $_SESSION['cart'][$id] = $qty;
+        }
     }
-  }
-  return null;
 }
+
+$pageTitle = 'Your Cart - Hue U Xchange';
+$cartProducts = [];
+$catalogError = false;
+
+if (!empty($_SESSION['cart'])) {
+    try {
+        $pdo = get_db_connection();
+        $ids = array_map('intval', array_keys($_SESSION['cart']));
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $pdo->prepare(
+            "SELECT product_id, product_name, price FROM products WHERE product_id IN ($placeholders)"
+        );
+        $stmt->execute($ids);
+        foreach ($stmt->fetchAll() as $row) {
+            $cartProducts[(int) $row['product_id']] = $row;
+        }
+    } catch (Throwable $e) {
+        error_log('Cart page could not load products: ' . $e->getMessage());
+        $catalogError = true;
+    }
+}
+
+require __DIR__ . '/includes/header.php';
 ?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Your Cart - Hue U Xchange</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="offerings.php">Offerings</a></li>
-        <li><a href="cart.php">Cart</a></li>
-        <li><a href="about.html">About</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
     <section class="intro">
       <h1>Your Cart</h1>
 
-      <?php if (empty($_SESSION['cart'])): ?>
-        <p>Your cart is empty. <a href="offerings.php">Browse offerings</a>.</p>
+      <?php if ($catalogError): ?>
+        <p class="notice error">Your cart could not be loaded right now. Please try again shortly.</p>
+      <?php elseif (empty($_SESSION['cart'])): ?>
+        <p class="notice">Your cart is empty. <a href="offerings.php">Browse offerings</a>.</p>
       <?php else: ?>
         <?php
           $total = 0;
           foreach ($_SESSION['cart'] as $id => $qty):
-            $product = getProductById($products, $id);
-            if (!$product) continue;
-            $subtotal = $product['price'] * $qty;
+            $product = $cartProducts[(int) $id] ?? null;
+            if (!$product) {
+                continue;
+            }
+            $subtotal = (float) $product['price'] * $qty;
             $total += $subtotal;
         ?>
-          <div class="product">
-            <h2><?= htmlspecialchars($product['name']) ?></h2>
-            <p>Quantity: <?= $qty ?></p>
-            <p>Subtotal: $<?= number_format($subtotal, 2) ?></p>
+          <div class="product-card">
+            <h2><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?></h2>
+            <p>Quantity: <?= (int) $qty ?></p>
+            <p class="price">Subtotal: $<?= htmlspecialchars(number_format($subtotal, 2), ENT_QUOTES, 'UTF-8') ?></p>
           </div>
         <?php endforeach; ?>
 
-        <h3><strong>Total: $<?= number_format($total, 2) ?></strong></h3>
+        <h3><strong>Total: $<?= htmlspecialchars(number_format($total, 2), ENT_QUOTES, 'UTF-8') ?></strong></h3>
 
         <a href="checkout.php" class="cta-button">Proceed to Checkout</a>
       <?php endif; ?>
     </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Hue U Xchange</p>
-  </footer>
-</body>
-</html>
+<?php require __DIR__ . '/includes/footer.php'; ?>

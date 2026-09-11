@@ -1,36 +1,23 @@
-<?php session_start(); ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Checkout - Hue U Xchange</title>
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
+<?php
+require __DIR__ . '/includes/session.php';
+hue_start_session();
 
-  <header>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="offerings.php">Offerings</a></li>
-        <li><a href="cart.php">Cart</a></li>
-        <li><a href="about.html">About</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
+$pageTitle = 'Checkout - Hue U Xchange';
+require __DIR__ . '/includes/header.php';
+?>
     <section class="intro">
       <h1>Initiation Form</h1>
       <p class="tagline">You are one step away from becoming a Certified Light Carrier.</p>
 
-      <form action="confirm.php" method="POST">
+      <form class="stacked" action="confirm.php" method="POST">
         <label>
-          Name: <input type="text" name="name" required />
-        </label><br /><br />
+          Name:
+          <input type="text" name="name" required />
+        </label>
         <label>
-          Email: <input type="email" name="email" required />
-        </label><br /><br />
+          Email:
+          <input type="email" name="email" required />
+        </label>
         <label>
           Energy Signature:
           <select name="signature" required>
@@ -38,12 +25,8 @@
             <option value="Wave">Wave</option>
             <option value="Stone">Stone</option>
           </select>
-        </label><br /><br />
+        </label>
         <button type="submit">Complete Initiation</button>
       </form>
-
     </section>
-  </main>
-
-</body>
-</html>
+<?php require __DIR__ . '/includes/footer.php'; ?>

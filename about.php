@@ -1,23 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>About Us - Hue U Xchange</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <header>
-    <nav>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="offerings.php">Offerings</a></li>
-        <li><a href="cart.php">Cart</a></li>
-        <li><a href="about.html">About</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
+<?php
+$pageTitle = 'About Us - Hue U Xchange';
+require __DIR__ . '/includes/header.php';
+?>
     <section class="intro">
       <h1>About Hue U Xchange</h1>
       <p class="tagline">Where soul meets style. Where darkness turns into light.</p>
@@ -41,10 +25,4 @@
 
       <p>Thank you for showing up with your hue. You are welcome here.</p>
     </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Hue U Xchange</p>
-  </footer>
-</body>
-</html>
+<?php require __DIR__ . '/includes/footer.php'; ?>
