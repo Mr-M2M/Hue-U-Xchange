@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/config/database.php';
+require __DIR__ . '/includes/product_functions.php';
 
 $pageTitle = 'Offerings - Hue U Xchange';
 $products = [];
@@ -7,14 +8,7 @@ $catalogError = false;
 
 try {
     $pdo = get_db_connection();
-    $stmt = $pdo->prepare(
-        'SELECT product_id, product_name, symbolic_description, price, image_reference
-         FROM products
-         WHERE is_active = 1
-         ORDER BY display_order ASC, product_name ASC'
-    );
-    $stmt->execute();
-    $products = $stmt->fetchAll();
+    $products = hue_get_active_products($pdo);
 } catch (Throwable $e) {
     error_log('Offerings page could not load products: ' . $e->getMessage());
     $catalogError = true;

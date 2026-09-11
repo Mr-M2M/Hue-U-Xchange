@@ -6,9 +6,10 @@ music, apparel, and spiritual tools connected to Donny D and The Curing Process.
 ## Project structure
 
 ```
+admin/       Product management pages (create, edit, deactivate/activate, list)
 config/      Centralized configuration and the PDO database connection
 database/    hue_u_xchange.sql - importable database export (schema + seed data)
-includes/    Shared header, navigation, footer, and session components
+includes/    Shared header, navigation, footer, session, and product-data functions
 css/         Site stylesheet
 images/      Product and branding images
 docs/        Project documentation (development records, project plan)
@@ -59,9 +60,25 @@ reads settings from environment variables (`HUE_DB_HOST`, `HUE_DB_PORT`, `HUE_DB
 | Home | `index.php` | Welcome and introduction |
 | About | `about.php` | Mission and background |
 | Offerings | `offerings.php` | Database-backed product catalog with Add to Cart |
-| Cart | `cart.php` | Session-based shopping cart |
+| Cart | `cart.php` | Session-based shopping cart backed by trusted database prices |
 | Checkout | `checkout.php` | Initiation form (no real payment processing) |
 | Confirmation | `confirm.php` | Order confirmation |
+
+## Product management (admin)
+
+Reached via the "Manage Products" link in the site navigation, or directly at
+`admin/products.php`. No login is implemented yet - treat this area as a local
+development tool rather than a public feature.
+
+| Page | File | Description |
+| --- | --- | --- |
+| Product list | `admin/products.php` | Every product (active and inactive), with Edit / Deactivate / Activate actions |
+| Create product | `admin/product_create.php` | Validated form; inserts with a prepared statement |
+| Edit product | `admin/product_edit.php?id=` | Loads an existing product by ID, same validation as create, prepared UPDATE |
+| Deactivate / Activate | `admin/product_delete.php?id=` | Confirmation screen on GET; only a confirmed POST changes `is_active` |
+
+All product reads and writes go through the shared functions in
+`includes/product_functions.php` - no page builds its own product SQL.
 
 ## Database
 
