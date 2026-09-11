@@ -1,0 +1,220 @@
+/* Hue U Xchange - shared site styling
+   Lightbearer palette: deep indigo background, warm gold accent,
+   cream text, used consistently across every page. */
+
+:root {
+  --hue-bg: #1c1230;
+  --hue-surface: #2b1b4d;
+  --hue-accent: #f2c14e;
+  --hue-accent-dark: #c99a2e;
+  --hue-text: #f5f1e8;
+  --hue-text-muted: #cfc6e6;
+  --hue-border: #4a3572;
+  --hue-error: #e88f8f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background-color: var(--hue-bg);
+  color: var(--hue-text);
+  line-height: 1.6;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: var(--hue-surface);
+  border-bottom: 1px solid var(--hue-border);
+}
+
+.brand-link {
+  color: var(--hue-accent);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+nav a {
+  color: var(--hue-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.25rem 0.1rem;
+  border-bottom: 2px solid transparent;
+}
+
+nav a:hover,
+nav li.active a {
+  color: var(--hue-accent);
+  border-bottom-color: var(--hue-accent);
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.intro h1 {
+  color: var(--hue-accent);
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.tagline {
+  color: var(--hue-text-muted);
+  font-style: italic;
+  margin-top: 0;
+}
+
+.cta-button {
+  display: inline-block;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--hue-accent);
+  color: var(--hue-surface);
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 999px;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.cta-button:hover {
+  background-color: var(--hue-accent-dark);
+  transform: translateY(-1px);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.product-card {
+  background-color: var(--hue-surface);
+  border: 1px solid var(--hue-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.product-card h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--hue-accent);
+}
+
+.product-card .price {
+  font-weight: 700;
+  color: var(--hue-text);
+}
+
+.product-card form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+.product-card input[type="number"] {
+  width: 55px;
+  padding: 0.35rem;
+  border-radius: 6px;
+  border: 1px solid var(--hue-border);
+  background-color: var(--hue-bg);
+  color: var(--hue-text);
+}
+
+button,
+.product-card button {
+  padding: 0.5rem 1rem;
+  background-color: var(--hue-accent);
+  color: var(--hue-surface);
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--hue-accent-dark);
+}
+
+.notice {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background-color: var(--hue-surface);
+  border: 1px solid var(--hue-border);
+  color: var(--hue-text-muted);
+}
+
+.notice.error {
+  border-color: var(--hue-error);
+  color: var(--hue-error);
+}
+
+form.stacked label {
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--hue-text-muted);
+}
+
+form.stacked input,
+form.stacked select {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 0.35rem;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--hue-border);
+  background-color: var(--hue-surface);
+  color: var(--hue-text);
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--hue-text-muted);
+  border-top: 1px solid var(--hue-border);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  main {
+    padding: 1.5rem 1rem 2rem;
+  }
+  .intro h1 {
+    font-size: 1.6rem;
+  }
+}
