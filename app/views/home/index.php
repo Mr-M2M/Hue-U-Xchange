@@ -1,7 +1,3 @@
-<?php
-$pageTitle = 'Hue U Xchange';
-require __DIR__ . '/includes/header.php';
-?>
     <section class="intro">
       <h1>Welcome to Hue U Xchange</h1>
       <p class="tagline">The resources you need to fuel and guide you through your transformation.</p>
@@ -10,6 +6,5 @@ require __DIR__ . '/includes/header.php';
 
       <p>Lightbearers gather here not just to buy — but to declare their readiness, to affirm their place in the Shining Light Army, and to carry light into a shadowed world.</p>
 
-      <a href="offerings.php" class="cta-button">Start Your Journey</a>
+      <a href="<?= \App\Core\Url::to('offerings') ?>" class="cta-button">Start Your Journey</a>
     </section>
-<?php require __DIR__ . '/includes/footer.php'; ?>

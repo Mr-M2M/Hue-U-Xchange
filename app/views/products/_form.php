@@ -1,7 +1,7 @@
 <?php
 /**
- * Shared product form partial, included by product_create.php and
- * product_edit.php. Expects the including page to define:
+ * Shared product form partial, included by products/create.php and
+ * products/edit.php. Expects the including view to define:
  *   $formAction   string  form target URL
  *   $values       array   current field values (submitted or loaded)
  *   $errors       array   field_name => message

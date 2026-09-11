@@ -1,7 +1,3 @@
-<?php
-$pageTitle = 'About Us - Hue U Xchange';
-require __DIR__ . '/includes/header.php';
-?>
     <section class="intro">
       <h1>About Hue U Xchange</h1>
       <p class="tagline">Where soul meets style. Where darkness turns into light.</p>
@@ -25,4 +21,3 @@ require __DIR__ . '/includes/header.php';
 
       <p>Thank you for showing up with your hue. You are welcome here.</p>
     </section>
-<?php require __DIR__ . '/includes/footer.php'; ?>

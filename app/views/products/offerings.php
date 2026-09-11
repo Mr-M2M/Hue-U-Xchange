@@ -1,21 +1,3 @@
-<?php
-require __DIR__ . '/config/database.php';
-require __DIR__ . '/includes/product_functions.php';
-
-$pageTitle = 'Offerings - Hue U Xchange';
-$products = [];
-$catalogError = false;
-
-try {
-    $pdo = get_db_connection();
-    $products = hue_get_active_products($pdo);
-} catch (Throwable $e) {
-    error_log('Offerings page could not load products: ' . $e->getMessage());
-    $catalogError = true;
-}
-
-require __DIR__ . '/includes/header.php';
-?>
     <section class="intro">
       <h1>Choose Your Symbolic Offering</h1>
       <p class="tagline">Each item is a tool of transformation for your journey from shadow to light.</p>
@@ -33,7 +15,7 @@ require __DIR__ . '/includes/header.php';
               <h2><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?></h2>
               <p><?= htmlspecialchars($product['symbolic_description'], ENT_QUOTES, 'UTF-8') ?></p>
               <p class="price">$<?= htmlspecialchars(number_format((float) $product['price'], 2), ENT_QUOTES, 'UTF-8') ?></p>
-              <form action="cart.php" method="POST">
+              <form action="<?= \App\Core\Url::to('cart/add') ?>" method="POST">
                 <input type="hidden" name="product_id" value="<?= (int) $product['product_id'] ?>">
                 <label>Qty:
                   <input type="number" name="quantity" value="1" min="1" required>
@@ -45,4 +27,3 @@ require __DIR__ . '/includes/header.php';
         </div>
       <?php endif; ?>
     </section>
-<?php require __DIR__ . '/includes/footer.php'; ?>
