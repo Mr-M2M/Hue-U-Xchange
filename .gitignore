@@ -1,0 +1,21 @@
+# Local environment / credentials - never commit real config
+config/config.local.php
+.env
+.env.local
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PHP / dependency artifacts
+vendor/
+composer.lock
+*.log
+
+# XAMPP / local server artifacts
+*.sql.bak
