@@ -18,8 +18,8 @@
               <th scope="col">Name</th>
               <th scope="col">Price</th>
               <th scope="col">Status</th>
-              <th scope="col">Order</th>
-              <th scope="col">Updated</th>
+              <th scope="col" class="hide-sm">Order</th>
+              <th scope="col" class="hide-sm">Updated</th>
               <th scope="col">Actions</th>
             </tr>
           </thead>
@@ -36,8 +36,8 @@
                     <span class="status-pill status-inactive">Inactive</span>
                   <?php endif; ?>
                 </td>
-                <td><?= (int) $product['display_order'] ?></td>
-                <td><?= htmlspecialchars(date('M j, Y g:i A', strtotime($product['updated_at'])), ENT_QUOTES, 'UTF-8') ?></td>
+                <td class="hide-sm"><?= (int) $product['display_order'] ?></td>
+                <td class="hide-sm"><?= htmlspecialchars(date('M j, Y g:i A', strtotime($product['updated_at'])), ENT_QUOTES, 'UTF-8') ?></td>
                 <td class="admin-actions">
                   <a href="<?= \App\Core\Url::to('products/edit', array('id' => (int) $product['product_id'])) ?>">Edit<span class="visually-hidden"> <?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?></span></a>
                   <a href="<?= \App\Core\Url::to('products/delete', array('id' => (int) $product['product_id'])) ?>">
