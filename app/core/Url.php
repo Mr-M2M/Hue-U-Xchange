@@ -2,16 +2,20 @@
 namespace App\Core;
 
 /**
- * Builds links back through the single front controller
- * (public/index.php) using the query-string route the router reads.
- * Every navigation link in every view goes through this helper so the
- * routing convention only exists in one place.
+ * Builds every internal link, form action, and redirect target so the
+ * query-string routing convention (index.php?route=...) lives in one
+ * place. Adds the session id only when the browser is not sending the
+ * session cookie (see Session::carryId()).
  */
 class Url
 {
     public static function to($route, array $params = [])
     {
         $query = array_merge(['route' => $route], $params);
+        $carry = Session::carryId();
+        if ($carry !== null) {
+            $query[Session::URL_PARAM] = $carry;
+        }
         return 'index.php?' . http_build_query($query);
     }
 }
