@@ -1,5 +1,6 @@
 Hue U Xchange - Phase 4 HTTP regression run
-Date: September 27, 2026 11:38 PM EDT
+Date: September 28, 2026 12:11 AM EDT
+Commit tested: c7faa53
 Environment: PHP 8.5.4 (built-in server) | 11.8.6-MariaDB | Ubuntu 26.04
 Command: python3 tests/http_regression.py --base http://127.0.0.1:8000 --fail-base http://127.0.0.1:8001 (second copy pointed at an unreachable DB port)
 
@@ -17,11 +18,11 @@ PASS CRUD-R-04  Product-management page loads and lists all products
 PASS CRUD-V-01  Empty name/description, non-numeric price and bad display order are rejected
 PASS CRUD-V-02  Over-long name, negative price and negative display order are rejected
 PASS CRUD-V-03  Scientific-notation price and unsafe image path are rejected
-PASS CRUD-C-01  Valid product is saved to MySQL and confirmation message shown  -- product_id=11
+PASS CRUD-C-01  Valid product is saved to MySQL and confirmation message shown  -- product_id=6
 PASS SEC-01  Script input is stored but rendered escaped (no raw <script>)
 PASS CRUD-V-04  Duplicate product name is rejected with a clear message
 PASS CRUD-U-01  Edit form loads with existing values
-PASS CRUD-U-02  Valid update changes the MySQL record and management list  -- Regression Test Offering 1790566709 Updated | 15.75
+PASS CRUD-U-02  Valid update changes the MySQL record and management list  -- Regression Test Offering 1790568677 Updated | 15.75
 PASS CRUD-U-03  Updated product appears on the public Offerings page
 PASS CRUD-U-04  Invalid update values are rejected and record is unchanged
 PASS CRUD-U-05  Invalid product ID on edit is rejected
