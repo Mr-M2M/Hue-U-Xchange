@@ -166,6 +166,7 @@ The full written results are in the *Hue U Xchange Application Test Description*
 - Deactivation hides a product rather than permanently deleting it. This is intentional, to preserve records.
 - Phase 4 testing ran on PHP 8.5 with MariaDB 11.8 and headless Chromium in a Linux development environment. PHP 7.4 compatibility was checked with a static analysis tool, not by running PHP 7.4. The XAMPP 7.4.11 / Apache run and Microsoft Edge were not available in that environment.
 - Product images are static files in `public/images/`. There is no image upload.
+- If a hosting proxy strips cookies, the session id is carried in an `hsid` URL parameter so the cart still works. Only session ids the server already created are accepted (strict mode). Under normal XAMPP use, the cookie is used instead.
 
 ## Future Improvements
 
