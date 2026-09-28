@@ -19,3 +19,7 @@ composer.lock
 
 # XAMPP / local server artifacts
 *.sql.bak
+
+# Test output
+__pycache__/
+tests/*.json
