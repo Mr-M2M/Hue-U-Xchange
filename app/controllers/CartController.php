@@ -15,8 +15,12 @@ class CartController extends Controller
 {
     public function index()
     {
-        $pdo = get_db_connection();
-        $cart = Cart::contents($pdo);
+        try {
+            $cart = Cart::contents(get_db_connection());
+        } catch (\Throwable $e) {
+            error_log('Cart page could not connect: ' . $e->getMessage());
+            $cart = array('lines' => array(), 'total' => 0.0, 'catalog_error' => true);
+        }
 
         $this->render('cart/index', array(
             'pageTitle' => 'Your Cart - Hue U Xchange',
@@ -38,9 +42,7 @@ class CartController extends Controller
 
     private function mutate($increment)
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('cart');
-        }
+        $this->requireValidPost('cart');
 
         $productId = isset($_POST['product_id']) ? $_POST['product_id'] : 0;
         $quantity = isset($_POST['quantity']) ? $_POST['quantity'] : '1';
@@ -52,7 +54,7 @@ class CartController extends Controller
                 : Cart::updateQuantity($pdo, $productId, $quantity);
 
             if ($result['ok']) {
-                Flash::set('success', $increment ? 'Added to your cart.' : 'Cart updated.');
+                Flash::set('success', $increment ? 'Added to your cart. Keep walking in the light.' : 'Cart updated.');
             } else {
                 Flash::set('error', $result['error']);
             }
@@ -66,9 +68,7 @@ class CartController extends Controller
 
     public function remove()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('cart');
-        }
+        $this->requireValidPost('cart');
 
         $productId = isset($_POST['product_id']) ? $_POST['product_id'] : 0;
         $result = Cart::remove($productId);

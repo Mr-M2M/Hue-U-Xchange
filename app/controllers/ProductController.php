@@ -66,6 +66,7 @@ class ProductController extends Controller
         $dbError = false;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireValidPost('products/create');
             list($values, $errors) = Product::validateInput($_POST);
 
             if (empty($errors)) {
@@ -106,6 +107,10 @@ class ProductController extends Controller
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         if (!$id && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireValidPost('products');
         }
 
         if (!$id || $id < 1) {
@@ -174,6 +179,10 @@ class ProductController extends Controller
             $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
         }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireValidPost('products');
+        }
+
         if (!$id || $id < 1) {
             $invalidId = true;
         } else {
@@ -205,7 +214,7 @@ class ProductController extends Controller
         }
 
         $this->render('products/delete_confirm', array(
-            'pageTitle' => 'Deactivate Product - Hue U Xchange',
+            'pageTitle' => 'Deactivate or Reactivate Product - Hue U Xchange',
             'product'   => $product,
             'invalidId' => $invalidId,
             'notFound'  => $notFound,

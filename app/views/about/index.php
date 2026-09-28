@@ -1,10 +1,10 @@
-    <section class="intro">
+    <section class="intro panel">
       <h1>About Hue U Xchange</h1>
       <p class="tagline">Where soul meets style. Where darkness turns into light.</p>
 
       <p><strong>Hue U Xchange</strong> is not just an online shop. It is a sacred portal — a transformational gateway designed for the Shining Light Army, a community of Lightbearers walking their curing process.</p>
 
-      <p>Each offering is more than a product — it’s a piece of energy, a symbol of commitment, and a companion on the road to self-redemption. Whether you're wrapping yourself in a <em>Divine Hoodie</em> or tuning into the frequencies of the <em>Music EP</em>, you are participating in an act of spiritual exchange, not consumption.</p>
+      <p>Each offering is more than a product — it’s a piece of energy, a symbol of commitment, and a companion on the road to self-redemption. Whether you’re wrapping yourself in a <em>Divine Hoodie</em> or tuning into the frequencies of the <em>Music EP</em>, you are participating in an act of spiritual exchange, not consumption.</p>
 
       <p>The vision comes from the story of <strong>Donny D</strong> — a seeker who stumbled into exile, wrestled his own shadows, and emerged bearing light. Just like Donny, every visitor to Hue U is invited to begin their own curing process.</p>
 
@@ -18,6 +18,9 @@
         <li><strong>Sonic Guidance:</strong> Music and sound rituals from the Lightbearer archives</li>
         <li><strong>Community Vibes:</strong> A place of initiation, not just transaction</li>
       </ul>
+
+      <h2>The Story Behind It</h2>
+      <p>Hue U Xchange takes its name from <strong>Hue University</strong>, the school of Cosmic Creators in <em>Donny D: The Curing Process</em>. Read the artist biography, meet the figures of Yoo-U, and see the music from the story on <a href="<?= \App\Core\Url::to('lore') ?>">The Curing Process</a> page.</p>
 
       <p>Thank you for showing up with your hue. You are welcome here.</p>
     </section>

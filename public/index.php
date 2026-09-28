@@ -26,12 +26,18 @@ $routes = require APP_ROOT . '/routes/routes.php';
 // works unconditionally under XAMPP and PHP's built-in server. When
 // Apache mod_rewrite is active, public/.htaccess rewrites a pretty path
 // like /products into that same query string before this file runs.
-$route = isset($_GET['route']) ? trim($_GET['route'], '/') : '';
+$route = isset($_GET['route']) && is_string($_GET['route']) ? trim($_GET['route'], '/') : '';
+define('HUE_ROUTE', $route);
+
+// Basic hardening headers for every response.
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: same-origin');
 
 if (!isset($routes[$route])) {
     http_response_code(404);
     $flashMessages = array();
     $pageTitle = 'Not Found - Hue U Xchange';
+    extract(\App\Core\Controller::layoutData());
     require APP_ROOT . '/app/views/layouts/header.php';
     require APP_ROOT . '/app/views/errors/not_found.php';
     require APP_ROOT . '/app/views/layouts/footer.php';
@@ -54,6 +60,7 @@ try {
     http_response_code(500);
     $flashMessages = array();
     $pageTitle = 'Something Went Wrong - Hue U Xchange';
+    extract(\App\Core\Controller::layoutData());
     require APP_ROOT . '/app/views/layouts/header.php';
     require APP_ROOT . '/app/views/errors/error.php';
     require APP_ROOT . '/app/views/layouts/footer.php';

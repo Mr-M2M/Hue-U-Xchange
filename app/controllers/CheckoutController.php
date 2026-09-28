@@ -2,120 +2,79 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Csrf;
 use App\Core\Flash;
 use App\Models\Cart;
 
 /**
- * Handles the checkout form and the "Certified Light Carrier"
- * confirmation. Validates submitted values, prevents an empty-cart
- * checkout, generates a simulated order summary from trusted cart/
- * database data, and uses Post-Redirect-Get so refreshing the
- * confirmation page never repeats the order.
+ * Checkout flow: initiation form -> server-side validation -> simulated
+ * order -> one-time Certified Light Carrier confirmation. No payment is
+ * processed; the order exists only in the session.
  */
 class CheckoutController extends Controller
 {
+    /** Optional Energy Signatures a Lightbearer may choose at checkout. */
     const SIGNATURES = array('Flame', 'Wave', 'Stone');
 
-    /** GET /checkout - show the initiation form. */
     public function index()
     {
-        if (Cart::isEmpty()) {
-            Flash::set('error', 'Your cart is empty. Add an offering before checking out.');
-            $this->redirect('cart');
-        }
+        $cart = $this->loadCartOrRedirect();
 
         $this->render('checkout/form', array(
-            'pageTitle' => 'Checkout - Hue U Xchange',
-            'values'    => array('name' => '', 'email' => '', 'signature' => ''),
-            'errors'    => array(),
+            'pageTitle'  => 'Checkout - Hue U Xchange',
+            'values'     => array('name' => '', 'email' => '', 'signature' => ''),
+            'errors'     => array(),
+            'signatures' => self::SIGNATURES,
+            'lines'      => $cart['lines'],
+            'total'      => $cart['total'],
         ));
     }
 
-    /** POST /checkout/submit - validate, generate the order summary, clear the cart. */
     public function submit()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('checkout');
-        }
+        $this->requireValidPost('checkout');
 
-        if (Cart::isEmpty()) {
-            Flash::set('error', 'Your cart is empty. Add an offering before checking out.');
-            $this->redirect('cart');
-        }
+        $cart = $this->loadCartOrRedirect();
 
         $values = array(
             'name'      => trim((string) (isset($_POST['name']) ? $_POST['name'] : '')),
             'email'     => trim((string) (isset($_POST['email']) ? $_POST['email'] : '')),
             'signature' => trim((string) (isset($_POST['signature']) ? $_POST['signature'] : '')),
         );
-        $errors = array();
-
-        if ($values['name'] === '') {
-            $errors['name'] = 'Name is required.';
-        } elseif (mb_strlen($values['name']) > 120) {
-            $errors['name'] = 'Name must be 120 characters or fewer.';
-        }
-
-        if ($values['email'] === '') {
-            $errors['email'] = 'Email is required.';
-        } elseif (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Enter a valid email address.';
-        } elseif (mb_strlen($values['email']) > 180) {
-            $errors['email'] = 'Email must be 180 characters or fewer.';
-        }
-
-        if ($values['signature'] === '' || !in_array($values['signature'], self::SIGNATURES, true)) {
-            $errors['signature'] = 'Choose an Energy Signature.';
-        }
+        $errors = self::validate($values);
 
         if (!empty($errors)) {
-            // Preserve the submitted (safe) values so the form does not
-            // ask the visitor to retype everything after a validation error.
             $this->render('checkout/form', array(
-                'pageTitle' => 'Checkout - Hue U Xchange',
-                'values'    => $values,
-                'errors'    => $errors,
+                'pageTitle'  => 'Checkout - Hue U Xchange',
+                'values'     => $values,
+                'errors'     => $errors,
+                'signatures' => self::SIGNATURES,
+                'lines'      => $cart['lines'],
+                'total'      => $cart['total'],
             ));
             return;
         }
 
-        try {
-            $pdo = get_db_connection();
-            $cart = Cart::contents($pdo);
-        } catch (\Throwable $e) {
-            error_log('Checkout could not load cart contents: ' . $e->getMessage());
-            Flash::set('error', 'Checkout could not be completed right now. Please try again shortly.');
-            $this->redirect('cart');
-            return;
-        }
-
-        if (empty($cart['lines'])) {
-            Flash::set('error', 'Your cart is empty. Add an offering before checking out.');
-            $this->redirect('cart');
-            return;
-        }
-
-        // Simulated order summary - no real payment processing.
+        // Successful processing: snapshot the order (trusted MySQL prices
+        // resolved by Cart::contents), rotate the form token so the same
+        // form cannot be processed a second time, and only then clear the
+        // cart.
         $_SESSION['checkout_confirmation'] = array(
-            'name'  => $values['name'],
-            'lines' => $cart['lines'],
-            'total' => $cart['total'],
+            'name'      => $values['name'],
+            'signature' => $values['signature'],
+            'reference' => 'SLA-' . strtoupper(bin2hex(random_bytes(3))),
+            'lines'     => $cart['lines'],
+            'total'     => $cart['total'],
         );
-
+        Csrf::rotate();
         Cart::clear();
 
-        // Post-Redirect-Get: the confirmation is rendered on the next
-        // GET request, so refreshing it never resubmits the order.
         $this->redirect('confirm');
     }
 
-    /** GET /confirm - display the confirmation once, then clear it. */
     public function confirmation()
     {
         if (!isset($_SESSION['checkout_confirmation'])) {
-            // No pending confirmation (direct visit, refresh after the
-            // first view, or replay) - send the visitor home safely
-            // instead of fabricating an order.
             $this->redirect('home');
             return;
         }
@@ -126,8 +85,67 @@ class CheckoutController extends Controller
         $this->render('checkout/confirm', array(
             'pageTitle' => 'Confirmation - Hue U Xchange',
             'name'      => $order['name'],
+            'signature' => isset($order['signature']) ? $order['signature'] : '',
+            'reference' => isset($order['reference']) ? $order['reference'] : '',
             'lines'     => $order['lines'],
             'total'     => $order['total'],
         ));
+    }
+
+    /** Server-side validation for the initiation form. */
+    private static function validate(array $values)
+    {
+        $errors = array();
+
+        if ($values['name'] === '') {
+            $errors['name'] = 'Name is required.';
+        } elseif (mb_strlen($values['name']) > 120) {
+            $errors['name'] = 'Name must be 120 characters or fewer.';
+        }
+
+        if ($values['email'] === '') {
+            $errors['email'] = 'Email is required.';
+        } elseif (mb_strlen($values['email']) > 180) {
+            $errors['email'] = 'Email must be 180 characters or fewer.';
+        } elseif (!filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Enter a valid email address, such as name@example.com.';
+        }
+
+        // Energy Signature is optional; if one is sent it must be a known value.
+        if ($values['signature'] !== '' && !in_array($values['signature'], self::SIGNATURES, true)) {
+            $errors['signature'] = 'That Energy Signature is not a recognized option.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Loads the cart with trusted database prices. An empty cart (or a
+     * cart whose items are no longer active) blocks checkout.
+     */
+    private function loadCartOrRedirect()
+    {
+        if (Cart::isEmpty()) {
+            Flash::set('error', 'Your cart is empty. Add an offering before checking out.');
+            $this->redirect('cart');
+        }
+
+        try {
+            $cart = Cart::contents(get_db_connection());
+        } catch (\Throwable $e) {
+            error_log('Checkout could not load cart contents: ' . $e->getMessage());
+            $cart = array('lines' => array(), 'catalog_error' => true);
+        }
+
+        if (!empty($cart['catalog_error'])) {
+            Flash::set('error', 'Checkout could not be completed right now. Please try again shortly.');
+            $this->redirect('cart');
+        }
+        if (empty($cart['lines'])) {
+            Flash::set('error', 'Your cart is empty. Add an offering before checking out.');
+            $this->redirect('cart');
+        }
+
+        return $cart;
     }
 }

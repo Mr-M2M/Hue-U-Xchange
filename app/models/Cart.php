@@ -81,11 +81,19 @@ class Cart
             return array('ok' => false, 'error' => 'That product is no longer available.');
         }
 
-        if ($increment && isset($_SESSION['cart'][$id])) {
-            $_SESSION['cart'][$id] += $qty;
-        } else {
-            $_SESSION['cart'][$id] = $qty;
+        $newQty = ($increment && isset($_SESSION['cart'][$id]))
+            ? (int) $_SESSION['cart'][$id] + $qty
+            : $qty;
+
+        // The per-line limit applies to the combined quantity, so repeated
+        // "Add to Cart" clicks cannot push a line past MAX_QUANTITY.
+        if ($newQty > self::MAX_QUANTITY) {
+            $already = isset($_SESSION['cart'][$id]) ? (int) $_SESSION['cart'][$id] : 0;
+            return array('ok' => false, 'error' => 'Quantity cannot exceed ' . self::MAX_QUANTITY
+                . ' per item (you already have ' . $already . ' in your cart).');
         }
+
+        $_SESSION['cart'][$id] = $newQty;
 
         return array('ok' => true, 'error' => null);
     }
@@ -103,6 +111,15 @@ class Cart
     }
 
     /** Empty the cart entirely (used after a successful checkout). */
+    /** Total number of items in the session cart (used by the nav badge). */
+    public static function itemCount()
+    {
+        if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
+            return 0;
+        }
+        return (int) array_sum(array_map('intval', $_SESSION['cart']));
+    }
+
     public static function clear()
     {
         $_SESSION['cart'] = array();

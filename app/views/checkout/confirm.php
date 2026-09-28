@@ -1,30 +1,22 @@
-    <section class="intro">
+    <section class="intro confirm-hero">
+      <p class="eyebrow">Initiation complete</p>
       <h1>Welcome, <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?>.</h1>
-      <p>You are now a <strong>Certified Light Carrier</strong>.</p>
-      <p>The portal recognizes your signature and your offerings.</p>
-
-      <?php if (!empty($lines)): ?>
-        <h2>Order Summary</h2>
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Offering</th>
-              <th>Qty</th>
-              <th>Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($lines as $line): $product = $line['product']; ?>
-              <tr>
-                <td><?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
-                <td><?= (int) $line['quantity'] ?></td>
-                <td>$<?= htmlspecialchars(number_format($line['subtotal'], 2), ENT_QUOTES, 'UTF-8') ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-        <h3><strong>Total: $<?= htmlspecialchars(number_format($total, 2), ENT_QUOTES, 'UTF-8') ?></strong></h3>
+      <p class="confirm-line">You are now a <strong>Certified Light Carrier</strong>.</p>
+      <p>The portal recognizes your <?= $signature !== '' ? '<strong>' . htmlspecialchars($signature, ENT_QUOTES, 'UTF-8') . '</strong> ' : '' ?>signature and your offerings.</p>
+      <?php if ($reference !== ''): ?>
+        <p class="hint">Reference: <strong><?= htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') ?></strong> (simulated order &mdash; no payment was collected)</p>
       <?php endif; ?>
-
-      <p>Thank you for stepping into the light. <a href="<?= \App\Core\Url::to('home') ?>">Return Home</a>.</p>
     </section>
+
+    <?php if (!empty($lines)): ?>
+      <section class="panel" aria-labelledby="confirm-summary">
+        <h2 id="confirm-summary">Order Summary</h2>
+        <?php require APP_ROOT . '/app/views/checkout/_summary.php'; ?>
+      </section>
+    <?php endif; ?>
+
+    <p>Thank you for stepping into the light. Keep your oath: live authentically, serve selflessly, seek harmony.</p>
+    <div class="hero-actions">
+      <a href="<?= \App\Core\Url::to('home') ?>" class="cta-button">Return Home</a>
+      <a href="<?= \App\Core\Url::to('lore') ?>" class="cta-button secondary">Continue the Story</a>
+    </div>

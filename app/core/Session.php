@@ -2,20 +2,28 @@
 namespace App\Core;
 
 /**
- * Session lifecycle helper. The front controller calls Session::start()
- * exactly once, before any output, instead of any page calling
- * session_start() directly. Guards against starting a second session.
+ * Session wrapper. start() is called exactly once per request by the
+ * front controller (public/index.php); every other caller goes through
+ * the same guard, so session_start() can never run twice.
  */
 class Session
 {
     public static function start()
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            session_start();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            return;
         }
+        if (!headers_sent()) {
+            session_set_cookie_params(array(
+                'lifetime' => 0,
+                'path'     => '/',
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ));
+        }
+        session_start();
     }
 
-    /** Ensure the session-based cart array exists. */
     public static function ensureCart()
     {
         if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
@@ -23,7 +31,6 @@ class Session
         }
     }
 
-    /** Destroy the entire session (used after a completed checkout). */
     public static function destroy()
     {
         $_SESSION = [];

@@ -1,6 +1,8 @@
 # Hue U Xchange - MVC Architecture
 
-Phase 3 reorganizes the application into a Model-View-Controller structure.
+Phase 3 reorganized the application into a Model-View-Controller structure,
+and Phase 4 (Week 5) finalized it. The Phase 4 additions are summarized in
+"Phase 4 changes" at the end of this document.
 This document explains what each directory is responsible for and how a
 browser request actually moves through the code below - it describes only
 what the code in this repository does.
@@ -11,15 +13,18 @@ what the code in this repository does.
 app/
   core/         Framework plumbing shared by every request: Autoloader,
                 Session, Flash (one-time redirect messages), Url (route-
-                link builder), and the base Controller class.
+                link builder), Csrf (per-session form token), and the base
+                Controller class.
   models/       Product.php and Cart.php - all database access and
-                session-cart rules live here. No HTML, no $_GET/$_POST.
-  controllers/  HomeController, AboutController, ProductController,
-                CartController, CheckoutController - request handling,
+                session-cart rules live here. Lore.php holds the narrative
+                content for The Curing Process page. No HTML, no
+                $_GET/$_POST.
+  controllers/  HomeController, AboutController, LoreController,
+                ProductController, CartController, CheckoutController - request handling,
                 validation, and flow control. No SQL, no full HTML pages.
   views/        Presentation only. layouts/ holds the shared header, nav,
                 and footer; the rest are grouped by feature (home/,
-                about/, products/, cart/, checkout/, errors/).
+                about/, lore/, products/, cart/, checkout/, errors/).
 config/         database.php (the centralized PDO connection) and the
                 git-ignored config.local.php with local credentials.
 database/       hue_u_xchange.sql - the importable schema + seed export.
@@ -118,3 +123,32 @@ function backed by a `static` PDO instance and reads credentials from
 environment variables or the git-ignored `config/config.local.php` - no
 view file, and no model, ever opens its own connection or references
 credentials directly.
+
+
+## Phase 4 changes
+
+Phase 4 kept the structure above and made these finalization changes:
+
+- **Form tokens (`App\Core\Csrf`).** Every POST form renders
+  `Csrf::field()`, and `Controller::requireValidPost()` rejects any
+  state-changing request that is not a POST or does not carry the
+  session's token. The token is rotated after a successful checkout, so
+  the same checkout form cannot be processed twice.
+- **Layout data.** `Controller::layoutData()` supplies `$currentSection`
+  (for the active-navigation state and `aria-current`) and `$cartCount`
+  (the nav cart badge) to the shared layout, so `layouts/nav.php` no
+  longer reads `$_GET` or defines functions. The front controller defines
+  `HUE_ROUTE` once for this purpose.
+- **Cart rule fix.** `Cart::addOrSet()` now applies `MAX_QUANTITY` to the
+  combined quantity, so repeated adds cannot push a line past 25.
+- **Price validation.** `Product::validateInput()` accepts only plain
+  decimals with up to two places (rejects values such as `1e3`).
+- **Checkout.** `CheckoutController` shows an order summary on the form,
+  treats Energy Signature as optional (validated only when sent), and
+  clears the cart only after successful processing.
+- **The Curing Process page.** `LoreController` passes data from
+  `App\Models\Lore` (artist biography, characters, oath, music, Coming
+  Soon) to `views/lore/index.php`.
+- **Session.** `Session::start()` is still the only place that calls
+  `session_start()`; it now sets HttpOnly and SameSite=Lax cookie
+  parameters first.
