@@ -59,8 +59,12 @@ class Product
 
         $priceRaw = trim((string) (isset($input['price']) ? $input['price'] : ''));
         $clean['price'] = $priceRaw;
-        if ($priceRaw === '' || !is_numeric($priceRaw)) {
-            $errors['price'] = 'Price must be a number (e.g. 24.99).';
+        if ($priceRaw !== '' && preg_match('/^-\d+(\.\d+)?$/', $priceRaw)) {
+            $errors['price'] = 'Price cannot be negative.';
+        } elseif ($priceRaw === '' || !preg_match('/^\d{1,6}(\.\d{1,2})?$/', $priceRaw)) {
+            // Plain decimal only - rejects "abc", "1e3", "0x1A", and more
+            // than two decimal places.
+            $errors['price'] = 'Price must be a number with up to two decimals (e.g. 24.99).';
         } else {
             $price = (float) $priceRaw;
             if ($price < 0) {
