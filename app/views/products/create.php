@@ -3,7 +3,7 @@
       <p class="tagline">Create a new symbolic offering for the catalog.</p>
 
       <?php if ($dbError): ?>
-        <p class="notice error">The product could not be saved right now. Please try again shortly.</p>
+        <p class="notice error" role="alert"><strong>Error:</strong> The product could not be saved right now. Please try again shortly.</p>
       <?php endif; ?>
 
       <?php require APP_ROOT . '/app/views/products/_form.php'; ?>

@@ -20,6 +20,7 @@ return array(
     ''                => array('App\\Controllers\\HomeController', 'index'),
     'home'            => array('App\\Controllers\\HomeController', 'index'),
     'about'           => array('App\\Controllers\\AboutController', 'index'),
+    'lore'            => array('App\\Controllers\\LoreController', 'index'),
 
     'offerings'       => array('App\\Controllers\\ProductController', 'offerings'),
     'products'        => array('App\\Controllers\\ProductController', 'manage'),
