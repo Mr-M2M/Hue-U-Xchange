@@ -235,6 +235,7 @@ def main():
     record("SEC-02", "Security", "POST with a missing/forged form token is refused", "expired" in csrf and "Access Code" not in csrf.split("Your Cart")[-1])
 
     # ---- Checkout ----
+    orders_start = int(sql(a.mysql, "SELECT COUNT(*) FROM orders") or 0)
     ck = get("checkout", sess=c).text
     record("CHECKOUT-01", "Checkout", "Checkout form shows an accurate order summary from the cart",
            "Order Summary" in ck and "$132.00" in ck and "Divine Hoodie" in ck)
@@ -250,6 +251,10 @@ def main():
     record("CHECKOUT-04", "Checkout validation", "Over-long name and an unknown Energy Signature are rejected",
            "120 characters" in e3 and "Energy Signature" in e3 and "not a recognized" in e3)
     record("CHECKOUT-05", "Checkout validation", "Cart is NOT cleared by a failed checkout", "$132.00" in get("cart", sess=c).text)
+    orders_before = int(sql(a.mysql, "SELECT COUNT(*) FROM orders") or 0)
+    record("ORD-01", "Orders", "Failed checkout attempts save no order rows",
+           orders_before == orders_start
+           and sql(a.mysql, "SELECT COUNT(*) FROM customers WHERE email='light@example.com'") == "0")
     t = token(get("checkout", sess=c).text)
     ok = post("checkout/submit", {"csrf_token": t, "name": "Nivlema O'Sage", "email": "lightbearer@example.com", "signature": ""}, sess=c)
     record("CHECKOUT-06", "Checkout", "Valid information (Energy Signature left blank) is accepted",
@@ -257,9 +262,46 @@ def main():
     record("CHECKOUT-07", "Confirmation", "Confirmation shows the name safely and an accurate order summary",
            "Nivlema O&#039;Sage" in ok.text and "$132.00" in ok.text and "Divine Hoodie" in ok.text)
     record("CHECKOUT-08", "Confirmation", "Cart is cleared after successful checkout", "Your cart is empty" in get("cart", sess=c).text)
+
+    # ---- Saved order and relationships ----
+    orders_after = int(sql(a.mysql, "SELECT COUNT(*) FROM orders") or 0)
+    last = sql(a.mysql, "SELECT o.order_id, o.order_reference, o.order_total, c.full_name, c.email FROM orders o "
+                        "JOIN customers c ON c.customer_id=o.customer_id ORDER BY o.order_id DESC LIMIT 1").split("\t")
+    record("ORD-02", "Orders", "Successful checkout saves exactly one order linked to its customer",
+           orders_after == orders_before + 1 and len(last) == 5 and last[3] == "Nivlema O'Sage" and last[4] == "lightbearer@example.com",
+           "order_id=%s" % (last[0] if last else "?"))
+    items = sql(a.mysql, "SELECT p.product_name, oi.quantity, oi.unit_price, oi.line_total FROM order_items oi "
+                         "JOIN products p ON p.product_id=oi.product_id WHERE oi.order_id=%s" % (last[0] if last else 0))
+    record("ORD-03", "Orders", "Order items reference the product with trusted price, quantity, and line total",
+           items == "Divine Hoodie\t3\t44.00\t132.00" and len(last) == 5 and last[2] == "132.00", items.replace("\t", " | "))
+    record("ORD-04", "Orders", "Confirmation shows the order reference saved in MySQL",
+           len(last) == 5 and last[1] in ok.text and re.match(r"^SLA-[0-9A-F]{6}$", last[1]) is not None)
     again = post("checkout/submit", {"csrf_token": t, "name": "Nivlema", "email": "lightbearer@example.com"}, sess=c).text
     record("CHECKOUT-09", "Checkout", "Re-submitting the same checkout form is controlled (no second order)",
-           "You are now a" not in again)
+           "You are now a" not in again and int(sql(a.mysql, "SELECT COUNT(*) FROM orders") or 0) == orders_after)
+    # A returning email reuses the same customer row (one customer, many orders).
+    post("cart/add", {"csrf_token": token(get("offerings", sess=c).text), "product_id": "4", "quantity": "2"}, sess=c)
+    t2 = token(get("checkout", sess=c).text)
+    ok2 = post("checkout/submit", {"csrf_token": t2, "name": "Nivlema O'Sage", "email": "LightBearer@Example.com", "signature": "Wave"}, sess=c)
+    per_customer = sql(a.mysql, "SELECT COUNT(DISTINCT c.customer_id), COUNT(o.order_id) FROM customers c JOIN orders o "
+                                "ON o.customer_id=c.customer_id WHERE c.email='lightbearer@example.com'").split("\t")
+    record("ORD-05", "Orders", "A returning customer's second order links to the same customer row",
+           "You are now a" in ok2.text and len(per_customer) == 2 and per_customer[0] == "1" and int(per_customer[1]) >= 2,
+           "customers=%s orders=%s" % tuple(per_customer) if len(per_customer) == 2 else "")
+    sig = sql(a.mysql, "SELECT energy_signature, order_total FROM orders ORDER BY order_id DESC LIMIT 1")
+    record("ORD-06", "Orders", "Energy Signature and total ($22.00 for 2 x Music EP) are stored on the order",
+           sig == "Wave\t22.00", sig.replace("\t", " | "))
+    fk_order = subprocess.run(a.mysql.split() + ["hue_u_xchange", "-e",
+                              "INSERT INTO order_items (order_id, product_id, quantity, unit_price, line_total) VALUES (999999, 1, 1, 1.00, 1.00)"],
+                              capture_output=True, text=True)
+    fk_product = subprocess.run(a.mysql.split() + ["hue_u_xchange", "-e",
+                                "DELETE FROM products WHERE product_id=1"], capture_output=True, text=True)
+    record("ORD-07", "Database relationships", "Foreign keys reject an orphan order item and block deleting an ordered product",
+           fk_order.returncode != 0 and "foreign key" in fk_order.stderr.lower()
+           and fk_product.returncode != 0 and "foreign key" in fk_product.stderr.lower())
+    hist = get("orders").text
+    record("ORD-08", "Orders", "Order History page lists saved orders with customer and total",
+           len(last) == 5 and last[1] in hist and "Nivlema O&#039;Sage" in hist and "$132.00" in hist)
     record("CHECKOUT-10", "Checkout", "Checkout with an empty cart is blocked", "cart is empty" in get("checkout", sess=c).text)
     record("CHECKOUT-11", "Confirmation", "Refreshing/reopening confirmation does not replay the order",
            "You are now a" not in get("confirm", sess=c).text)
@@ -297,7 +339,7 @@ def main():
     home = get("").text
     links = ["route=offerings", "route=cart", "route=about", "route=lore", "route=products"]
     record("NAV-02", "Navigation", "Main navigation links to every section", all(l in home for l in links))
-    status_ok = all(get(rt).status_code == 200 for rt in ["", "home", "about", "lore", "offerings", "cart", "products", "products/create"])
+    status_ok = all(get(rt).status_code == 200 for rt in ["", "home", "about", "lore", "offerings", "cart", "products", "products/create", "orders"])
     record("NAV-03", "Navigation", "Every navigation target returns HTTP 200", status_ok)
     record("NAV-04", "Navigation", "Current page is marked with aria-current", 'aria-current="page"' in get("about").text)
 
