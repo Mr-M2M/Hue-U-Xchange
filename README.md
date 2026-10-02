@@ -194,7 +194,7 @@ The latest run is saved in [`docs/final-test-results.txt`](docs/final-test-resul
   - [Database Support Phase](https://github.com/Mr-M2M/Hue-U-Xchange/releases/tag/Phase-3-Database-Support): CRUD
   - [Phase #3](https://github.com/Mr-M2M/Hue-U-Xchange/releases/tag/Phase-3): MVC
   - [Phase #4](https://github.com/Mr-M2M/Hue-U-Xchange/releases/tag/Phase-4): finalized application (before the final audit)
-  - Final submission release: pending approval of the release strategy
+  - [Hue U Xchange Final Submission](https://github.com/Mr-M2M/Hue-U-Xchange/releases/tag/Final-Submission): final audited application with saved orders (tag `Final-Submission`)
 - Development branches:
   - `week-2-database-framework`
   - `week-3-database-support`
