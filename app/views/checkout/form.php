@@ -7,7 +7,7 @@
       <section class="panel" aria-labelledby="summary-heading">
         <h2 id="summary-heading">Order Summary</h2>
         <?php require APP_ROOT . '/app/views/checkout/_summary.php'; ?>
-        <p class="hint">This is a simulated order. No payment is collected.</p>
+        <p class="hint">Your order is recorded when you complete initiation. No payment is collected.</p>
         <p><a href="<?= \App\Core\Url::to('cart') ?>">Edit your cart</a></p>
       </section>
 

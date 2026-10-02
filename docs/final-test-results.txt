@@ -1,0 +1,79 @@
+Hue U Xchange - Final submission HTTP regression run
+Date: October 2, 2026 12:54 AM EDT
+Commit tested: 81d7116 (branch final-submission-audit)
+Environment: Apache/2.4.66 with PHP 7.4.33 (mod_php) | 11.8.6-MariaDB-5ubuntu0.1 from Ubuntu | Ubuntu 26.04
+Database: rebuilt from database/hue_u_xchange.sql immediately before the run
+Command: python3 tests/http_regression.py --base http://127.0.0.1:8080 --fail-base http://127.0.0.1:8081 --mysql "mariadb -u<local user> -p<local password>"
+         (--fail-base is a second Apache vhost pointed at an unreachable database port)
+
+PASS ENV-01  Web server responds to the front controller
+PASS DB-01  MySQL/MariaDB is reachable and products table exists  -- 5 rows
+PASS DB-02  Application reads products through PDO (Offerings lists Divine Hoodie)
+PASS DB-03  Unreachable database shows a safe visitor message with no technical detail
+PASS UI-01  Home page loads with Shining Light Army branding
+PASS UI-02  About page loads
+PASS UI-03  The Curing Process lore / music page loads
+PASS CRUD-R-01  Offerings shows all five active core products
+PASS CRUD-R-02  Offerings are displayed in display order
+PASS CRUD-R-03  Prices are formatted as currency ($44.00)
+PASS CRUD-R-04  Product-management page loads and lists all products
+PASS CRUD-V-01  Empty name/description, non-numeric price and bad display order are rejected
+PASS CRUD-V-02  Over-long name, negative price and negative display order are rejected
+PASS CRUD-V-03  Scientific-notation price and unsafe image path are rejected
+PASS CRUD-C-01  Valid product is saved to MySQL and confirmation message shown  -- product_id=6
+PASS SEC-01  Script input is stored but rendered escaped (no raw <script>)
+PASS CRUD-V-04  Duplicate product name is rejected with a clear message
+PASS CRUD-U-01  Edit form loads with existing values
+PASS CRUD-U-02  Valid update changes the MySQL record and management list  -- Regression Test Offering 1790916873 Updated | 15.75
+PASS CRUD-U-03  Updated product appears on the public Offerings page
+PASS CRUD-U-04  Invalid update values are rejected and record is unchanged
+PASS CRUD-U-05  Invalid product ID on edit is rejected
+PASS CART-01  Valid product is added to the cart
+PASS CART-02  Missing product ID is rejected by the cart
+PASS CART-03  Quantities of 0, negative, and 500 are rejected
+PASS CART-04  Repeated adds cannot push one line past the 25-item limit
+PASS CART-05  Client-supplied price is ignored (trusted MySQL price used)
+PASS CART-06  Line subtotals are correct (3 x $44.00 = $132.00; 3 x $11.00 = $33.00)
+PASS CART-07  Order total is correct ($165.00)
+PASS CART-08  Cart persists across navigation and refresh
+PASS CART-09  Quantity update works and totals recalculate ($143.00)
+PASS CART-10  Invalid quantity on update is rejected
+PASS CART-11  Item removal works
+PASS CART-12  Direct GET to cart/add does not change the cart
+PASS SEC-02  POST with a missing/forged form token is refused
+PASS CHECKOUT-01  Checkout form shows an accurate order summary from the cart
+PASS CHECKOUT-02  Empty name is rejected with a field-level message
+PASS CHECKOUT-03  Invalid email is rejected and safe values are preserved (escaped)
+PASS CHECKOUT-04  Over-long name and an unknown Energy Signature are rejected
+PASS CHECKOUT-05  Cart is NOT cleared by a failed checkout
+PASS ORD-01  Failed checkout attempts save no order rows
+PASS CHECKOUT-06  Valid information (Energy Signature left blank) is accepted
+PASS CHECKOUT-07  Confirmation shows the name safely and an accurate order summary
+PASS CHECKOUT-08  Cart is cleared after successful checkout
+PASS ORD-02  Successful checkout saves exactly one order linked to its customer  -- order_id=1
+PASS ORD-03  Order items reference the product with trusted price, quantity, and line total  -- Divine Hoodie | 3 | 44.00 | 132.00
+PASS ORD-04  Confirmation shows the order reference saved in MySQL
+PASS CHECKOUT-09  Re-submitting the same checkout form is controlled (no second order)
+PASS ORD-05  A returning customer's second order links to the same customer row  -- customers=1 orders=2
+PASS ORD-06  Energy Signature and total ($22.00 for 2 x Music EP) are stored on the order  -- Wave | 22.00
+PASS ORD-07  Foreign keys reject an orphan order item and block deleting an ordered product
+PASS ORD-08  Order History page lists saved orders with customer and total
+PASS CHECKOUT-10  Checkout with an empty cart is blocked
+PASS CHECKOUT-11  Refreshing/reopening confirmation does not replay the order
+PASS CRUD-D-01  GET request shows a confirmation step and does not change the record
+PASS CRUD-D-02  Confirmed POST deactivates the product (prepared statement) with a clear message
+PASS CRUD-D-03  Deactivated product no longer appears publicly but stays in management list
+PASS CART-13  Inactive product is rejected by the cart
+PASS CRUD-D-04  Invalid product ID is rejected
+PASS SEC-03  SQL-injection strings in IDs are rejected and the table is intact
+PASS NAV-01  Unknown route returns 404 Not Found page
+PASS NAV-02  Main navigation links to every section
+PASS NAV-03  Every navigation target returns HTTP 200
+PASS NAV-04  Current page is marked with aria-current
+PASS A11Y-01  Skip link, lang attribute, and single h1 present on pages
+PASS A11Y-02  Every image has an alt attribute  -- 5 images
+PASS SEC-04  No PHP warnings, notices, fatal errors, or stack traces in any response  -- 81 responses checked
+
+67/67 passed
+
+Apache/PHP error log after the run: 0 lines, 0 PHP warnings, notices, deprecations, or fatal errors

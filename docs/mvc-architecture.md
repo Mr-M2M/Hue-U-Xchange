@@ -15,16 +15,18 @@ app/
                 Session, Flash (one-time redirect messages), Url (route-
                 link builder), Csrf (per-session form token), and the base
                 Controller class.
-  models/       Product.php and Cart.php - all database access and
-                session-cart rules live here. Lore.php holds the narrative
-                content for The Curing Process page. No HTML, no
+  models/       Product.php, Cart.php, and Order.php - all database access
+                and session-cart rules live here. Lore.php holds the
+                narrative content for The Curing Process page. No HTML, no
                 $_GET/$_POST.
   controllers/  HomeController, AboutController, LoreController,
-                ProductController, CartController, CheckoutController - request handling,
-                validation, and flow control. No SQL, no full HTML pages.
+                ProductController, CartController, CheckoutController,
+                OrderController - request handling, validation, and flow
+                control. No SQL, no full HTML pages.
   views/        Presentation only. layouts/ holds the shared header, nav,
                 and footer; the rest are grouped by feature (home/,
-                about/, lore/, products/, cart/, checkout/, errors/).
+                about/, lore/, products/, cart/, checkout/, orders/,
+                errors/).
 config/         database.php (the centralized PDO connection) and the
                 git-ignored config.local.php with local credentials.
 database/       hue_u_xchange.sql - the importable schema + seed export.
@@ -152,3 +154,41 @@ Phase 4 kept the structure above and made these finalization changes:
 - **Session.** `Session::start()` is still the only place that calls
   `session_start()`; it now sets HttpOnly and SameSite=Lax cookie
   parameters first.
+
+## Final submission changes
+
+The final audit kept the structure above and added order persistence:
+
+- **Relational tables.** `database/hue_u_xchange.sql` now creates
+  `customers`, `orders`, and `order_items` alongside `products`. See
+  [`database-design.md`](database-design.md) for the relationship diagram.
+- **`App\Models\Order`.** `place()` saves a checkout inside one
+  transaction: it reuses or creates the customer row for the email
+  address, inserts the order, and inserts one `order_items` row per cart
+  line using the unit price already resolved from MySQL by
+  `Cart::contents()`. If any insert fails, the transaction is rolled back
+  and nothing is recorded. `findWithItems()` and `recent()` read orders
+  back with joins.
+- **`CheckoutController`.** After validation, `submit()` calls
+  `Order::place()`. The cart is cleared only after the order commits; on a
+  database failure the visitor sees a safe message and keeps the cart.
+  `confirmation()` reads the saved order back from MySQL, so the
+  Certified Light Carrier page shows exactly what was stored.
+- **`OrderController` and `views/orders/index.php`.** A read-only Order
+  History page (route `orders`, linked from Manage Products) lists saved
+  orders with the customer name, item count, and total.
+
+Request flow for a successful checkout:
+
+```
+Browser POST index.php?route=checkout/submit
+  -> public/index.php (front controller: session, route map)
+  -> CheckoutController::submit()  validates token, name, email, signature
+  -> Cart::contents($pdo)          trusted prices from products
+  -> Order::place(...)             customers -> orders -> order_items (transaction)
+  -> redirect to ?route=confirm    (Post-Redirect-Get)
+  -> CheckoutController::confirmation()
+  -> Order::findWithItems($id)     joins orders, customers, order_items, products
+  -> views/checkout/confirm.php inside layouts/header.php + footer.php
+```
+
