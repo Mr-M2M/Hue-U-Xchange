@@ -1,6 +1,6 @@
 Hue U Xchange - Final submission HTTP regression run
-Date: October 2, 2026 12:49 AM EDT
-Commit tested: c6247c5 (branch final-submission-audit)
+Date: October 2, 2026 12:52 AM EDT
+Commit tested: b5f6f08 (branch final-submission-audit)
 Environment: Apache/2.4.66 with PHP 7.4.33 (mod_php) | 11.8.6-MariaDB-5ubuntu0.1 from Ubuntu | Ubuntu 26.04
 Database: rebuilt from database/hue_u_xchange.sql immediately before the run
 Command: python3 tests/http_regression.py --base http://127.0.0.1:8080 --fail-base http://127.0.0.1:8081 --mysql "mariadb -u<local user> -p<local password>"
@@ -24,7 +24,7 @@ PASS CRUD-C-01  Valid product is saved to MySQL and confirmation message shown  
 PASS SEC-01  Script input is stored but rendered escaped (no raw <script>)
 PASS CRUD-V-04  Duplicate product name is rejected with a clear message
 PASS CRUD-U-01  Edit form loads with existing values
-PASS CRUD-U-02  Valid update changes the MySQL record and management list  -- Regression Test Offering 1790916575 Updated | 15.75
+PASS CRUD-U-02  Valid update changes the MySQL record and management list  -- Regression Test Offering 1790916744 Updated | 15.75
 PASS CRUD-U-03  Updated product appears on the public Offerings page
 PASS CRUD-U-04  Invalid update values are rejected and record is unchanged
 PASS CRUD-U-05  Invalid product ID on edit is rejected
