@@ -15,7 +15,7 @@
             <thead>
               <tr>
                 <th scope="col">Offering</th>
-                <th scope="col">Price</th>
+                <th scope="col" class="hide-sm">Price</th>
                 <th scope="col">Quantity</th>
                 <th scope="col" class="num">Subtotal</th>
                 <th scope="col"><span class="visually-hidden">Remove</span></th>
@@ -24,8 +24,9 @@
             <tbody>
               <?php foreach ($lines as $line): $product = $line['product']; $pid = (int) $product['product_id']; $pname = htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>
                 <tr>
-                  <th scope="row"><?= $pname ?></th>
-                  <td>$<?= htmlspecialchars(number_format((float) $product['price'], 2), ENT_QUOTES, 'UTF-8') ?></td>
+                  <?php $unitPrice = '$' . htmlspecialchars(number_format((float) $product['price'], 2), ENT_QUOTES, 'UTF-8'); ?>
+                  <th scope="row"><?= $pname ?><span class="show-sm unit-price"><?= $unitPrice ?> each</span></th>
+                  <td class="hide-sm"><?= $unitPrice ?></td>
                   <td>
                     <form action="<?= \App\Core\Url::to('cart/update') ?>" method="POST" class="inline-form">
                       <?= \App\Core\Csrf::field() ?>
@@ -48,7 +49,9 @@
             </tbody>
             <tfoot>
               <tr>
-                <th scope="row" colspan="3">Total</th>
+                <th scope="row">Total</th>
+                <td class="hide-sm"></td>
+                <td></td>
                 <td class="num total">$<?= htmlspecialchars(number_format($total, 2), ENT_QUOTES, 'UTF-8') ?></td>
                 <td></td>
               </tr>

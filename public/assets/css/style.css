@@ -525,6 +525,9 @@ form.stacked [aria-invalid="true"] { border-color: var(--hue-error); border-widt
 
 /* Tables */
 .table-wrap { width: 100%; overflow-x: auto; }
+/* Unit price shown under the offering name only when the Price column is hidden on small screens. */
+.show-sm { display: none; }
+.unit-price { font-size: 0.8rem; font-weight: 400; color: var(--hue-text-muted); margin-top: 0.15rem; }
 .admin-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
 .admin-table tbody th { font-weight: 500; color: var(--hue-text); }
 .admin-table .num { text-align: right; white-space: nowrap; }
@@ -555,10 +558,17 @@ footer.site-footer p { margin: 0.25rem 0; }
   .panel, .cta-panel { padding: 1.1rem; }
   .admin-table { font-size: 0.85rem; }
   .admin-table .hide-sm { display: none; }
+  .admin-table .show-sm { display: block; }
   .admin-actions a { display: inline-block; margin: 0.15rem 0.5rem 0.15rem 0; }
   .admin-table th, .admin-table td { padding: 0.5rem 0.45rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
+}
+
+/* Very narrow phones: tighten the cart table so Remove stays visible. */
+@media (max-width: 360px) {
+  .cart-table th, .cart-table td { padding: 0.45rem 0.25rem; }
+  .cart-table input[type="number"] { width: 3.25rem; }
 }
