@@ -1,5 +1,11 @@
 -- Hue U Xchange database export
--- Creates the database and products table and seeds the five offerings.
+-- Creates the hue_u_xchange database with four related tables:
+--   products     the catalog (seeded with the five core offerings)
+--   customers    one row per Lightbearer email address
+--   orders       one completed checkout; each belongs to one customer
+--   order_items  one line of an order; each references one product
+-- Relationships: customers 1-to-many orders, orders 1-to-many order_items,
+-- products 1-to-many order_items.
 -- Safe to import repeatedly: does not drop or alter any unrelated database,
 -- and uses "CREATE TABLE IF NOT EXISTS" plus a guarded seed so it will not
 -- duplicate rows if the file is imported more than once.
@@ -43,3 +49,56 @@ ON DUPLICATE KEY UPDATE
   `image_reference` = VALUES(`image_reference`),
   `is_active` = VALUES(`is_active`),
   `display_order` = VALUES(`display_order`);
+
+-- A customer is identified by email address. Checkout reuses the existing
+-- row for a returning email, so one customer can have many orders.
+CREATE TABLE IF NOT EXISTS `customers` (
+  `customer_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `full_name` VARCHAR(120) NOT NULL,
+  `email` VARCHAR(180) NOT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`customer_id`),
+  UNIQUE KEY `uniq_customer_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One completed checkout. No payment is collected; order_total is the sum
+-- of its order_items line totals, calculated from trusted product prices.
+CREATE TABLE IF NOT EXISTS `orders` (
+  `order_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_reference` VARCHAR(12) NOT NULL,
+  `customer_id` INT UNSIGNED NOT NULL,
+  `energy_signature` ENUM('Flame', 'Wave', 'Stone') NULL DEFAULT NULL,
+  `order_total` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `order_status` VARCHAR(20) NOT NULL DEFAULT 'confirmed',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`),
+  UNIQUE KEY `uniq_order_reference` (`order_reference`),
+  KEY `idx_orders_customer` (`customer_id`),
+  CONSTRAINT `fk_orders_customer`
+    FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `chk_orders_total` CHECK (`order_total` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One line of an order. unit_price is copied from products at checkout so
+-- later price edits do not change the history of a completed order.
+CREATE TABLE IF NOT EXISTS `order_items` (
+  `order_item_id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `order_id` INT UNSIGNED NOT NULL,
+  `product_id` INT UNSIGNED NOT NULL,
+  `quantity` SMALLINT UNSIGNED NOT NULL,
+  `unit_price` DECIMAL(10,2) NOT NULL,
+  `line_total` DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (`order_item_id`),
+  UNIQUE KEY `uniq_order_product` (`order_id`, `product_id`),
+  KEY `idx_order_items_product` (`product_id`),
+  CONSTRAINT `fk_order_items_order`
+    FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+    ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `fk_order_items_product`
+    FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `chk_order_items_quantity` CHECK (`quantity` BETWEEN 1 AND 25),
+  CONSTRAINT `chk_order_items_price` CHECK (`unit_price` >= 0 AND `line_total` >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

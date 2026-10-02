@@ -2,7 +2,8 @@
       <h1>Manage Products</h1>
       <p class="tagline">Create, edit, and deactivate offerings in the catalog. Inactive products stay in the database but are hidden from the public Offerings page.</p>
 
-      <p><a href="<?= \App\Core\Url::to('products/create') ?>" class="cta-button">Add New Product</a></p>
+      <p><a href="<?= \App\Core\Url::to('products/create') ?>" class="cta-button">Add New Product</a>
+         <a href="<?= \App\Core\Url::to('orders') ?>" class="cta-button secondary">View Order History</a></p>
 
       <?php if ($loadError): ?>
         <p class="notice error" role="alert"><strong>Error:</strong> The product list could not be loaded right now. Please try again shortly.</p>

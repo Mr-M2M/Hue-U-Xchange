@@ -4,7 +4,7 @@
       <p class="confirm-line">You are now a <strong>Certified Light Carrier</strong>.</p>
       <p>The portal recognizes your <?= $signature !== '' ? '<strong>' . htmlspecialchars($signature, ENT_QUOTES, 'UTF-8') . '</strong> ' : '' ?>signature and your offerings.</p>
       <?php if ($reference !== ''): ?>
-        <p class="hint">Reference: <strong><?= htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') ?></strong> (simulated order &mdash; no payment was collected)</p>
+        <p class="hint">Order reference: <strong><?= htmlspecialchars($reference, ENT_QUOTES, 'UTF-8') ?></strong> &mdash; your order has been recorded. No payment was collected.</p>
       <?php endif; ?>
     </section>
 

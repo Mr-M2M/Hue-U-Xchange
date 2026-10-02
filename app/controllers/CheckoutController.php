@@ -5,11 +5,12 @@ use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Flash;
 use App\Models\Cart;
+use App\Models\Order;
 
 /**
- * Checkout flow: initiation form -> server-side validation -> simulated
- * order -> one-time Certified Light Carrier confirmation. No payment is
- * processed; the order exists only in the session.
+ * Checkout flow: initiation form -> server-side validation -> order saved
+ * to MySQL (customers, orders, order_items) -> one-time Certified Light
+ * Carrier confirmation. No payment is processed.
  */
 class CheckoutController extends Controller
 {
@@ -55,17 +56,27 @@ class CheckoutController extends Controller
             return;
         }
 
-        // Successful processing: snapshot the order (trusted MySQL prices
-        // resolved by Cart::contents), rotate the form token so the same
-        // form cannot be processed a second time, and only then clear the
-        // cart.
-        $_SESSION['checkout_confirmation'] = array(
-            'name'      => $values['name'],
-            'signature' => $values['signature'],
-            'reference' => 'SLA-' . strtoupper(bin2hex(random_bytes(3))),
-            'lines'     => $cart['lines'],
-            'total'     => $cart['total'],
-        );
+        // Save the order (trusted MySQL prices resolved by Cart::contents)
+        // in one transaction. The cart is cleared only after the order is
+        // committed; if saving fails, the cart is kept and nothing is
+        // recorded.
+        try {
+            $placed = (new Order(get_db_connection()))->place(
+                $values['name'],
+                $values['email'],
+                $values['signature'],
+                $cart['lines']
+            );
+        } catch (\Throwable $e) {
+            error_log('Checkout could not save the order: ' . $e->getMessage());
+            Flash::set('error', 'Your initiation could not be completed right now. Your cart has been kept - please try again shortly.');
+            $this->redirect('checkout');
+            return;
+        }
+
+        // Rotate the form token so the same form cannot be processed a
+        // second time, then clear the cart and show the confirmation once.
+        $_SESSION['checkout_confirmation'] = $placed['order_id'];
         Csrf::rotate();
         Cart::clear();
 
@@ -79,16 +90,33 @@ class CheckoutController extends Controller
             return;
         }
 
-        $order = $_SESSION['checkout_confirmation'];
+        $orderId = (int) $_SESSION['checkout_confirmation'];
         unset($_SESSION['checkout_confirmation']);
+
+        // The confirmation is read back from the database, so it shows
+        // exactly what was saved for this order.
+        $order = (new Order(get_db_connection()))->findWithItems($orderId);
+        if ($order === null) {
+            $this->redirect('home');
+            return;
+        }
+
+        $lines = array();
+        foreach ($order['items'] as $item) {
+            $lines[] = array(
+                'product'  => array('product_name' => $item['product_name'], 'price' => $item['unit_price']),
+                'quantity' => (int) $item['quantity'],
+                'subtotal' => (float) $item['line_total'],
+            );
+        }
 
         $this->render('checkout/confirm', array(
             'pageTitle' => 'Confirmation - Hue U Xchange',
-            'name'      => $order['name'],
-            'signature' => isset($order['signature']) ? $order['signature'] : '',
-            'reference' => isset($order['reference']) ? $order['reference'] : '',
-            'lines'     => $order['lines'],
-            'total'     => $order['total'],
+            'name'      => $order['full_name'],
+            'signature' => (string) $order['energy_signature'],
+            'reference' => $order['order_reference'],
+            'lines'     => $lines,
+            'total'     => (float) $order['order_total'],
         ));
     }
 

@@ -34,6 +34,8 @@ abstract class Controller
         $section = $route === '' ? 'home' : explode('/', $route)[0];
         if ($section === 'confirm') {
             $section = 'checkout';
+        } elseif ($section === 'orders') {
+            $section = 'products';
         }
         return array(
             'currentSection' => $section,

@@ -110,7 +110,6 @@ class Cart
         return array('ok' => true, 'error' => null);
     }
 
-    /** Empty the cart entirely (used after a successful checkout). */
     /** Total number of items in the session cart (used by the nav badge). */
     public static function itemCount()
     {
@@ -120,6 +119,7 @@ class Cart
         return (int) array_sum(array_map('intval', $_SESSION['cart']));
     }
 
+    /** Empty the cart entirely (used after a successful checkout). */
     public static function clear()
     {
         $_SESSION['cart'] = array();

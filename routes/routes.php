@@ -27,6 +27,7 @@ return array(
     'products/create' => array('App\\Controllers\\ProductController', 'create'),
     'products/edit'   => array('App\\Controllers\\ProductController', 'edit'),
     'products/delete' => array('App\\Controllers\\ProductController', 'delete'),
+    'orders'          => array('App\\Controllers\\OrderController', 'index'),
 
     'cart'            => array('App\\Controllers\\CartController', 'index'),
     'cart/add'        => array('App\\Controllers\\CartController', 'add'),
